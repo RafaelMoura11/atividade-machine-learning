@@ -18,10 +18,11 @@ def load_data():
 
 X, y, feature_names, target_names = load_data()
 
-# Sidebar
 st.sidebar.header("⚙️ Configurações")
 test_size = st.sidebar.slider("Proporção de teste", 0.1, 0.4, 0.2, 0.05)
 random_state = st.sidebar.number_input("Random state", value=42, step=1)
 C = st.sidebar.slider("C — Força do modelo (LR)", 0.01, 10.0, 1.0)
 scale = st.sidebar.checkbox("Padronizar variáveis (recomendado)", value=True)
 show_unsup = st.sidebar.checkbox("Mostrar exploração não supervisionada (PCA + K-Means)", value=False)
+
+eda_tab, train_tab, extra_tab = st.tabs(["🔬 EDA essencial", "🧠 Treinar & Avaliar", "🌀 Não supervisionado (opcional)"])
