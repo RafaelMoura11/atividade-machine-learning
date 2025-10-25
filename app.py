@@ -2,6 +2,10 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from sklearn import datasets
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LogisticRegression
 import plotly.express as px
 
 st.set_page_config(page_title="Câncer de Mama — ML simplificado", layout="wide", initial_sidebar_state="expanded")
@@ -29,26 +33,24 @@ show_unsup = st.sidebar.checkbox("Mostrar exploração não supervisionada (PCA 
 eda_tab, train_tab, extra_tab = st.tabs(["🔬 EDA essencial", "🧠 Treinar & Avaliar", "🌀 Não supervisionado (opcional)"])
 
 with eda_tab:
-    st.subheader("Visão geral")
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Amostras", X.shape[0])
-    c2.metric("Atributos", X.shape[1])
-    counts = y.value_counts().rename(index={0: "malignant", 1: "benign"})
-    # mapeia para ordem desejada
-    c3.metric("Benigno", int(counts.get("benign", 0)))
-    c4.metric("Maligno", int(counts.get("malignant", 0)))
-
-    st.subheader("Primeiras linhas")
-    st.dataframe(X.head(), width='stretch')
-
-    st.subheader("Estatísticas")
-    st.dataframe(X.describe().T, width='stretch')
-
+    c1.metric("Amostras", X.shape[0]); c2.metric("Atributos", X.shape[1])
+    counts = y.value_counts().rename(index={0: "Maligno", 1: "Benigno"})
+    c3.metric("Benigno", int(counts.get("Benigno", 0))); c4.metric("Maligno", int(counts.get("Maligno", 0)))
+    st.subheader("Primeiras linhas"); st.dataframe(X.head(), width='stretch')
+    st.subheader("Estatísticas"); st.dataframe(X.describe().T, width='stretch')
     with st.expander("Distribuição do alvo"):
-        counts = y.value_counts().rename(index={0: "Maligno", 1: "Benigno"})
-        counts_df = counts.reset_index()
-        counts_df.columns = ['Classe', 'count']
-        fig = px.bar(counts_df, x='Classe', y='count',
-                     labels={'Classe': 'Classe', 'count': 'Contagem'},
-                     title='Distribuição das classes')
+        counts_df = counts.reset_index(); counts_df.columns = ['Classe', 'count']
+        fig = px.bar(counts_df, x='Classe', y='count', labels={'Classe': 'Classe', 'count': 'Contagem'}, title='Distribuição das classes')
         st.plotly_chart(fig, width='stretch')
+
+with train_tab:
+    st.subheader("Pipeline simples")
+    st.write("Usamos **Logistic Regression**. Se 'Padronizar' estiver ativo, aplicamos `StandardScaler` antes do modelo.")
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state, stratify=y)
+    steps = []
+    if scale: steps.append(("scaler", StandardScaler()))
+    steps.append(("clf", LogisticRegression(C=C, max_iter=1000, class_weight='balanced')))
+    pipe = Pipeline(steps)
+    st.info("Clique em **Treinar modelo** para calcular métricas.")
+    train_clicked = st.button("Treinar modelo", type="primary")
