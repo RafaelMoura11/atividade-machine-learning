@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 import plotly.express as px
 
 st.set_page_config(page_title="Câncer de Mama — ML simplificado", layout="wide", initial_sidebar_state="expanded")
@@ -17,8 +18,7 @@ def load_data():
     ds = datasets.load_breast_cancer(as_frame=True)
     X = ds.frame.drop(columns=[c for c in ['target'] if c in ds.frame.columns], errors='ignore')
     y = pd.Series(ds.target, name='target')
-    feature_names = list(X.columns)
-    target_names = list(ds.target_names)
+    feature_names = list(X.columns); target_names = list(ds.target_names)
     return X, y, feature_names, target_names
 
 X, y, feature_names, target_names = load_data()
@@ -47,10 +47,24 @@ with eda_tab:
 with train_tab:
     st.subheader("Pipeline simples")
     st.write("Usamos **Logistic Regression**. Se 'Padronizar' estiver ativo, aplicamos `StandardScaler` antes do modelo.")
+    from sklearn.metrics import confusion_matrix, roc_curve, auc  # adiantando imports para próximas versões
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state, stratify=y)
     steps = []
     if scale: steps.append(("scaler", StandardScaler()))
     steps.append(("clf", LogisticRegression(C=C, max_iter=1000, class_weight='balanced')))
     pipe = Pipeline(steps)
-    st.info("Clique em **Treinar modelo** para calcular métricas.")
-    train_clicked = st.button("Treinar modelo", type="primary")
+    if st.button("Treinar modelo", type="primary"):
+        pipe.fit(X_train, y_train)
+        y_pred = pipe.predict(X_test)
+        y_proba = pipe.predict_proba(X_test)[:, 1]
+        metrics = {
+            "Accuracy": accuracy_score(y_test, y_pred),
+            "Precision": precision_score(y_test, y_pred),
+            "Recall": recall_score(y_test, y_pred),
+            "F1-score": f1_score(y_test, y_pred),
+            "ROC AUC": roc_auc_score(y_test, y_proba),
+        }
+        st.subheader("📈 Métricas")
+        cols = st.columns(len(metrics))
+        for i, (k, v) in enumerate(metrics.items()):
+            cols[i].metric(k, f"{v:.4f}")
