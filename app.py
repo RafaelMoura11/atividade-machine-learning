@@ -6,8 +6,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, confusion_matrix, roc_curve, auc
 import plotly.express as px
+import plotly.graph_objects as go
 
 st.set_page_config(page_title="Câncer de Mama — ML simplificado", layout="wide", initial_sidebar_state="expanded")
 st.title("🏥 Classificação de Câncer de Mama (Simplificado)")
@@ -47,7 +48,6 @@ with eda_tab:
 with train_tab:
     st.subheader("Pipeline simples")
     st.write("Usamos **Logistic Regression**. Se 'Padronizar' estiver ativo, aplicamos `StandardScaler` antes do modelo.")
-    from sklearn.metrics import confusion_matrix, roc_curve, auc  # adiantando imports para próximas versões
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state, stratify=y)
     steps = []
     if scale: steps.append(("scaler", StandardScaler()))
@@ -68,3 +68,21 @@ with train_tab:
         cols = st.columns(len(metrics))
         for i, (k, v) in enumerate(metrics.items()):
             cols[i].metric(k, f"{v:.4f}")
+
+        st.subheader("🔢 Matriz de confusão")
+        cm = confusion_matrix(y_test, y_pred, labels=[0, 1])
+        fig_cm = px.imshow(cm, text_auto=True, aspect="auto",
+                           x=[target_names[0], target_names[1]],
+                           y=[target_names[0], target_names[1]],
+                           title="Matriz de Confusão")
+        fig_cm.update_layout(xaxis_title="Predito", yaxis_title="Real")
+        st.plotly_chart(fig_cm, width='stretch')
+
+        st.subheader("📉 Curva ROC")
+        fpr, tpr, _ = roc_curve(y_test, y_proba)
+        roc_auc = auc(fpr, tpr)
+        fig_roc = go.Figure()
+        fig_roc.add_trace(go.Scatter(x=fpr, y=tpr, mode="lines", name=f"ROC (AUC={roc_auc:.3f})"))
+        fig_roc.add_trace(go.Scatter(x=[0, 1], y=[0, 1], mode="lines", name="Aleatório", line=dict(dash="dash")))
+        fig_roc.update_layout(xaxis_title="FPR", yaxis_title="TPR")
+        st.plotly_chart(fig_roc, width='stretch')
