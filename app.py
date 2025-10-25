@@ -86,3 +86,15 @@ with train_tab:
         fig_roc.add_trace(go.Scatter(x=[0, 1], y=[0, 1], mode="lines", name="Aleatório", line=dict(dash="dash")))
         fig_roc.update_layout(xaxis_title="FPR", yaxis_title="TPR")
         st.plotly_chart(fig_roc, width='stretch')
+
+        st.subheader("🔍 O que mais pesou na decisão? (coeficientes)")
+        try:
+            clf = pipe.named_steps["clf"]
+            coefs = np.abs(clf.coef_[0])
+            imp = pd.DataFrame({"feature": feature_names, "importance": coefs}).sort_values("importance", ascending=False)
+            fig_imp = px.bar(imp.head(15), x="importance", y="feature", orientation="h", title="Top 15 coeficientes (magnitude)")
+            st.plotly_chart(fig_imp, width='stretch')
+            with st.expander("Ver tabela completa de importâncias"):
+                st.dataframe(imp, width='stretch')
+        except Exception as e:
+            st.info(f"Não foi possível calcular a importância: {e}")
