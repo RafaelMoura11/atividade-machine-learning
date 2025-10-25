@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+from sklearn import datasets
 
 st.set_page_config(
     page_title="Câncer de Mama — ML simplificado",
@@ -10,3 +11,15 @@ st.set_page_config(
 
 st.title("🏥 Classificação de Câncer de Mama (Simplificado)")
 st.caption("Aplicativo didático com o dataset clássico do scikit-learn.")
+
+# 1) Dados
+@st.cache_data(show_spinner=False)
+def load_data():
+    ds = datasets.load_breast_cancer(as_frame=True)
+    X = ds.frame.drop(columns=[c for c in ['target'] if c in ds.frame.columns], errors='ignore')
+    y = pd.Series(ds.target, name='target')
+    feature_names = list(X.columns)
+    target_names = list(ds.target_names)
+    return X, y, feature_names, target_names
+
+X, y, feature_names, target_names = load_data()
