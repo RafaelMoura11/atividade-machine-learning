@@ -20,7 +20,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 st.set_page_config(
-    page_title="Câncer de Mama — ML simplificado",
+    page_title="Câncer de Mama — ML",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -37,7 +37,7 @@ def load_data():
 
 X, y, feature_names, target_names = load_data()
 
-st.title("🏥 Classificação de Câncer de Mama (Simplificado)")
+st.title("🏥 Classificação de Câncer de Mama")
 st.caption("Aplicativo didático com o dataset clássico do scikit-learn.")
 
 # Sidebar
@@ -141,7 +141,7 @@ with extra_tab:
     st.subheader("Exploração não supervisionada (opcional)")
     st.caption("Isto **não usa** as respostas/labels. Serve para visualizar padrões.")
     if show_unsup:
-        k = st.slider("Número de clusters (k)", 2, 6, 3)
+        k = st.slider("Número de clusters (k)", 2, 6, 2)
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X)
 
@@ -164,4 +164,4 @@ with extra_tab:
         st.info("Ative a opção na barra lateral para ver PCA + K-Means.")
 
 st.markdown('---')
-st.caption("© 2025 — App simplificado para estudo de ML em saúde (câncer de mama).")
+st.caption("© 2025 — App para estudo de ML em saúde (câncer de mama).")
